@@ -72,14 +72,35 @@ class Promt:
         if len(parts) > 1:
             before_think = parts[0]
             after_think = parts[2] if len(parts) > 2 else ""
-            before_text = self.parse_bold(before_think)
+            before_text = self.parse_all(before_think)
             before_text.stylize("italic")
             console_text.append(before_text)
-            after_text = self.parse_bold(after_think)
+            after_text = self.parse_all(after_think)
             console_text.append(after_text)
         else:
-            console_text = self.parse_bold(text)
+            console_text = self.parse_all(text)
         return console_text
+
+
+    def parse_all(self, text: str) -> Text:
+        result = Text()
+        lines = text.splitlines(keepends=True)
+        for line in lines:
+            if line.startswith("###"):
+                content = line[3:].lstrip()
+                t = self.parse_bold(content)
+                t.stylize("bold italic underline")
+                result.append(t)
+            elif line.startswith("##"):
+                content = line[2:].lstrip()
+                t = self.parse_bold(content)
+                t.stylize("bold underline")
+                result.append(t)
+            else:
+                t = self.parse_bold(line)
+                result.append(t)
+
+        return result
 
 
     def parse_bold(self, text: str) -> Text:
