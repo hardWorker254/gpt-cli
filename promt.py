@@ -8,8 +8,8 @@ class Promt:
         self.content = ""
         self.model = "gpt-4o"
         self.language = "ru"
-        self.language_ru = "Type the answer using the RUSSIAN LANGUAGE."
-        self.language_en = "Type the answer using the ENGLISH LANGUAGE."
+        self.language_ru = "Type the answer using the RUSSIAN LANGUAGE. Do not use bold text(** or ***) in headers(## or ###)."
+        self.language_en = "Type the answer using the ENGLISH LANGUAGE. Do not use bold text(** or ***) in headers(## or ###)."
         self.history = []
     
     
@@ -46,7 +46,7 @@ class Promt:
     
     
     def truncate_history(self):
-        if len(self.history) >= 6:
+        if len(self.history) >= 4:
             self.history.pop(0)
             self.history.pop(0)
     
@@ -87,7 +87,6 @@ class Promt:
         # Паттерны
         header_pattern = re.compile(r'^(###|##)\s*(.+)$', re.MULTILINE)  # Заголовки
         bold_pattern = re.compile(r'(\*\*\*|\*\*|```|`)(.+?)(\1)', re.DOTALL)  # Жирный/код
-        bold_italic_pattern = re.compile(r'(##\|\|###)(.+?)(?=\n|$)', re.DOTALL) # Жирный курсив
         last_index = 0
         # Ищем все совпадения
         all_matches = []
@@ -95,9 +94,6 @@ class Promt:
             all_matches.append((match.start(), match.end(), 'header', match))
         for match in bold_pattern.finditer(text):
             all_matches.append((match.start(), match.end(), 'bold', match))
-        for match in bold_italic_pattern.finditer(text):
-            all_matches.append((match.start(), match.end(), 'bold_italic', match))
-        # Сортируем
         all_matches.sort(key=lambda x: x[0])
         # Обрабатываем совпадения по порядку
         for start, end, match_type, match in all_matches:
@@ -113,9 +109,6 @@ class Promt:
             elif match_type == 'bold':
                 bold_text = match.group(2)
                 result.append(bold_text, style="bold")
-            elif match_type == 'bold_italic':
-                 bold_italic_text = match.group(2)
-                 result.append(bold_italic_text, style="bold italic")
             last_index = end
         if last_index < len(text):
             result.append(text[last_index:])
