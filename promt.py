@@ -84,35 +84,38 @@ class Promt:
 
     def parse_all(self, text: str) -> Text:
         result = Text()
-        lines = text.splitlines(keepends=True)
-        for line in lines:
-            if line.startswith("###"):
-                content = line[3:].lstrip()
-                t = self.parse_bold(content)
-                t.stylize("bold italic underline")
-                result.append(t)
-            elif line.startswith("##"):
-                content = line[2:].lstrip()
-                t = self.parse_bold(content)
-                t.stylize("bold underline")
-                result.append(t)
-            else:
-                t = self.parse_bold(line)
-                result.append(t)
-
-        return result
-
-
-    def parse_bold(self, text: str) -> Text:
-        result = Text()
-        pattern = re.compile(r'(\*\*\*|\*\*|`)(.+?)(\1)')
+        # Паттерны
+        header_pattern = re.compile(r'^(###|##)\s*(.+)$', re.MULTILINE)  # Заголовки
+        bold_pattern = re.compile(r'(\*\*\*|\*\*|```|`)(.+?)(\1)', re.DOTALL)  # Жирный/код
+        bold_italic_pattern = re.compile(r'(##\|\|###)(.+?)(?=\n|$)', re.DOTALL) # Жирный курсив
         last_index = 0
-        for match in pattern.finditer(text):
-            start, end = match.span()
+        # Ищем все совпадения
+        all_matches = []
+        for match in header_pattern.finditer(text):
+            all_matches.append((match.start(), match.end(), 'header', match))
+        for match in bold_pattern.finditer(text):
+            all_matches.append((match.start(), match.end(), 'bold', match))
+        for match in bold_italic_pattern.finditer(text):
+            all_matches.append((match.start(), match.end(), 'bold_italic', match))
+        # Сортируем
+        all_matches.sort(key=lambda x: x[0])
+        # Обрабатываем совпадения по порядку
+        for start, end, match_type, match in all_matches:
             if start > last_index:
                 result.append(text[last_index:start])
-            bold_text = match.group(2)
-            result.append(bold_text, style="bold")
+            if match_type == 'header':
+                level = len(match.group(1))  # ### или ##
+                content = match.group(2)
+                if level == 3:
+                    result.append(content, style="bold italic underline")
+                elif level == 2:
+                    result.append(content, style="bold underline")
+            elif match_type == 'bold':
+                bold_text = match.group(2)
+                result.append(bold_text, style="bold")
+            elif match_type == 'bold_italic':
+                 bold_italic_text = match.group(2)
+                 result.append(bold_italic_text, style="bold italic")
             last_index = end
         if last_index < len(text):
             result.append(text[last_index:])
