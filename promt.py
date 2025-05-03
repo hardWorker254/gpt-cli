@@ -84,28 +84,25 @@ class Promt:
 
     def parse_all(self, text: str) -> Text:
         result = Text()
-        # Паттерны
-        header_pattern = re.compile(r'^(###|##)\s*(.+)$', re.MULTILINE)  # Заголовки
-        bold_pattern = re.compile(r'(\*\*\*|\*\*|```|`)(.+?)(\1)', re.DOTALL)  # Жирный/код
+        header_pattern = re.compile(r'^(###|##)\s*(.+)$', re.MULTILINE)
+        bold_pattern = re.compile(r'(\*\*\*|\*\*|```|`)(.+?)(\1)', re.DOTALL)
         last_index = 0
-        # Ищем все совпадения
         all_matches = []
         for match in header_pattern.finditer(text):
             all_matches.append((match.start(), match.end(), 'header', match))
         for match in bold_pattern.finditer(text):
             all_matches.append((match.start(), match.end(), 'bold', match))
         all_matches.sort(key=lambda x: x[0])
-        # Обрабатываем совпадения по порядку
         for start, end, match_type, match in all_matches:
             if start > last_index:
                 result.append(text[last_index:start])
             if match_type == 'header':
-                level = len(match.group(1))  # ### или ##
+                level = len(match.group(1))
                 content = match.group(2)
                 if level == 3:
                     result.append(content, style="bold italic underline")
                 elif level == 2:
-                    result.append(content, style="bold underline")
+                    result.append(content, style="bold italic underline2")
             elif match_type == 'bold':
                 bold_text = match.group(2)
                 result.append(bold_text, style="bold")

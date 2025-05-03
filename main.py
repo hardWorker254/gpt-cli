@@ -9,7 +9,7 @@ TEXT_MODELS = ["gpt-4o", "gpt-4o-mini", "llama-3.2-11b",
           "command-r-plus", "command-r7b", "command-a", 
           "qwen-2-72b", "qwen-2.5-coder-32b", "qwen-2.5-1m", 
           "deepseek-v3", "deepseek-r1",
-          "mistral-nemo", "evil(18+ mode)"]
+          "mistral-nemo", "evil"]
 
 
 # Here we go!
