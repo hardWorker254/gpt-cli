@@ -1,5 +1,7 @@
 from g4f.client import Client
 from rich.console import Console
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import WordCompleter
 from promt import Promt
 
 
@@ -12,8 +14,10 @@ TEXT_MODELS = ["gpt-4o", "gpt-4o-mini", "llama-3.2-11b",
           "mistral-nemo", "evil"]
 
 
+completer = WordCompleter(["model_list", "set_model", "clean"])
+
 # Here we go!
-data = input("You: ")
+data = prompt("You: ", completer=completer)
 
 # Formatting AI output, uploading files, truncates history and more
 promt = Promt()
@@ -30,7 +34,7 @@ while data != "exit":
     if data.split()[0] == "set_model":
         promt.model = data.split()[1]
         console.print(promt.format("Config:</think> ***setted model to " + data.split()[1] + "***"))
-        data = input("You: ")
+        data = prompt("You: ", completer=completer)
         continue
     
     # User wants to see all models
@@ -38,14 +42,14 @@ while data != "exit":
         console.print(promt.format("Config:</think> ***all models list:***"))
         for el in TEXT_MODELS:
             console.print(promt.format("***" + el + "***"), end="\n")
-        data = input("You: ")
+        data = prompt("You: ", completer=completer)
         continue
     
     # User wants to clean history
     elif data == "clean":
         console.print(promt.format("Config:</think> ***history cleaned***"))
         promt.history = []
-        data = input("You: ")
+        data = prompt("You: ", completer=completer)
         continue
     
     # Adding user promt
@@ -80,4 +84,4 @@ while data != "exit":
     console.print(f"{promt.model}:", formatted)
     
     # Oh shit...
-    data = input("You: ")
+    data = prompt("You: ", completer=completer)
