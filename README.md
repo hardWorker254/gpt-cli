@@ -22,13 +22,9 @@
    or
    sudo apt-get install make
    ```
-3. g4f
+3. g4f, rich, prompt_toolkit
    ```
-   pip install g4f
-   ```
-4. rich
-   ```
-   pip install rich
+   pip install g4f rich prompt_toolkit
    ```
 
 ## Установка
