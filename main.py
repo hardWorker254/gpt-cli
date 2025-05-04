@@ -14,10 +14,10 @@ TEXT_MODELS = ["gpt-4o", "gpt-4o-mini", "llama-3.2-11b",
           "mistral-nemo", "evil"]
 
 
-completer = WordCompleter(["model_list", "set_model", "clean"])
+completer = WordCompleter(["model_list", "set_model", "clean"] + TEXT_MODELS)
 
 # Here we go!
-data = prompt("You: ", completer=completer)
+data = prompt("You: ", completer=completer, complete_while_typing=False)
 
 # Formatting AI output, uploading files, truncates history and more
 promt = Promt()
@@ -34,7 +34,7 @@ while data != "exit":
     if data.split()[0] == "set_model":
         promt.model = data.split()[1]
         console.print(promt.format("Config:</think> ***setted model to " + data.split()[1] + "***"))
-        data = prompt("You: ", completer=completer)
+        data = prompt("You: ", completer=completer, complete_while_typing=False)
         continue
     
     # User wants to see all models
@@ -42,14 +42,14 @@ while data != "exit":
         console.print(promt.format("Config:</think> ***all models list:***"))
         for el in TEXT_MODELS:
             console.print(promt.format("***" + el + "***"), end="\n")
-        data = prompt("You: ", completer=completer)
+        data = prompt("You: ", completer=completer, complete_while_typing=False)
         continue
     
     # User wants to clean history
     elif data == "clean":
         console.print(promt.format("Config:</think> ***history cleaned***"))
         promt.history = []
-        data = prompt("You: ", completer=completer)
+        data = prompt("You: ", completer=completer, complete_while_typing=False)
         continue
     
     # Adding user promt
@@ -84,4 +84,4 @@ while data != "exit":
     console.print(f"{promt.model}:", formatted)
     
     # Oh shit...
-    data = prompt("You: ", completer=completer)
+    data = prompt("You: ", completer=completer, complete_while_typing=False)
