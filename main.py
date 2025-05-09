@@ -1,4 +1,3 @@
-from g4f.client import Client
 from rich.console import Console
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
@@ -11,7 +10,7 @@ TEXT_MODELS = ["gpt-4o", "gpt-4o-mini", "llama-3.2-11b",
           "command-r-plus", "command-r7b", "command-a", 
           "qwen-2-72b", "qwen-2.5-coder-32b", "qwen-2.5-1m", 
           "deepseek-v3", "deepseek-r1",
-          "mistral-nemo", "evil"]
+          "mistral-nemo", "felo-ai" "evil"]
 
 
 completer = WordCompleter(["model_list", "set_model", "clean"] + TEXT_MODELS)
@@ -24,9 +23,6 @@ promt = Promt()
 
 # For beautiful output
 console = Console()
-
-# GPT
-client = Client()
 
 while data != "exit":
     
@@ -64,15 +60,8 @@ while data != "exit":
     # No comments
     console.print(promt.format(f"{promt.model}: ***typing...***"))
     
-    # Getting AI's response
-    response = client.chat.completions.create(
-        model=promt.model,
-        messages=promt.history,
-        web_search=False
-    )
-    
     # Adding to history
-    promt.history.append({"role": "assistant", "content": response.choices[0].message.content})
+    promt.history.append({"role": "assistant", "content": promt.compute()})
     
     # Deleting "typing..."
     print("\033[F\033[K", end='')

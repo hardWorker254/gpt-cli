@@ -1,3 +1,5 @@
 g4f
 rich
 prompt_toolkit
+json
+requests

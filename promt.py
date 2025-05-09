@@ -1,6 +1,9 @@
 import os
 from rich.text import Text
 import re
+import requests
+import json
+from g4f.client import Client
 
 
 class Promt:
@@ -110,3 +113,29 @@ class Promt:
         if last_index < len(text):
             result.append(text[last_index:])
         return result
+    
+    
+    def compute(self):
+        if self.model == "felo-ai":
+            url = "https://api.felo.ai/search/threads"
+            pl = {"query": self.content, "search_uuid": "KOjrJgtkreK7dIZjdZdMa", "lang": "", "search_options": {}, "search_video": True, "query_from": "default", "category": "chat", "model": "", "auto_routing": True, "mode": "concise", "device_id": "40eb88430569da10bebebd33f914d9c7", "documents": [], "document_action": ""}
+            hd = {"User-Agent": "Mozilla/5.0 (Linux; Android 11; SM-A307FN Build/RP1A.200720.012)", "Accept": "*/*", "Content-Type": "application/json", "origin": "https://felo.ai", "x-requested-with": "mark.via.gp", "referer": "https://felo.ai/"}
+            rs = requests.post(url, data=json.dumps(pl), headers=hd)
+            ans = ""
+            for l in rs.text.splitlines():
+                if l.startswith("data: "):
+                    try:
+                        dt = json.loads(l[6:])
+                        if dt.get("type") == "answer":
+                            ans = dt["data"]["text"]
+                    except: pass
+            return ans
+        else:
+            # GPT
+            client = Client()
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=self.history,
+                web_search=False
+            )
+            return response.choices[0].message.content
