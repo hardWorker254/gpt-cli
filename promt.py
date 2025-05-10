@@ -1,9 +1,10 @@
-import os
-from rich.text import Text
-import re
-import requests
 import json
+import os
+import re
+
+import requests
 from g4f.client import Client
+from rich.text import Text
 
 
 class Promt:
@@ -14,8 +15,7 @@ class Promt:
         self.language_ru = "Type the answer using the RUSSIAN LANGUAGE. Do not use bold text(** or ***) in headers(## or ###)."
         self.language_en = "Type the answer using the ENGLISH LANGUAGE. Do not use bold text(** or ***) in headers(## or ###)."
         self.history = []
-    
-    
+
     def parse_files(self):
         files = []
         for el in self.content.split():
@@ -24,7 +24,7 @@ class Promt:
             elif os.path.isfile(el[:-1]):
                 files.append(el)
         files_content = ""
-        for el in files:   
+        for el in files:
             try:
                 open(el).close()
                 print("Attach file " + el + "?")
@@ -46,14 +46,12 @@ class Promt:
                 files_content += "\n"
             files_content += "\nEnd of " + el + "\n"
         return files_content
-    
-    
+
     def truncate_history(self):
         if len(self.history) >= 4:
             self.history.pop(0)
             self.history.pop(0)
-    
-    
+
     def create(self):
         self.content += "\n"
         if self.language == "ru":
@@ -65,13 +63,12 @@ class Promt:
         self.truncate_history()
         self.history.append({"role": "user", "content": self.content.rstrip()})
         return True
-    
-    
+
     def format(self, text: str) -> Text:
         if len(text) > 10 and text[:7:].lstrip().rstrip() == "<think>":
             text = text[7::]
         console_text = Text()
-        parts = re.split(r'(</think>)', text, maxsplit=1, flags=re.IGNORECASE)
+        parts = re.split(r"(</think>)", text, maxsplit=1, flags=re.IGNORECASE)
         if len(parts) > 1:
             before_think = parts[0]
             after_think = parts[2] if len(parts) > 2 else ""
@@ -84,42 +81,61 @@ class Promt:
             console_text = self.parse_all(text)
         return console_text
 
-
     def parse_all(self, text: str) -> Text:
         result = Text()
-        header_pattern = re.compile(r'^(###|##)\s*(.+)$', re.MULTILINE)
-        bold_pattern = re.compile(r'(\*\*\*|\*\*|```|`)(.+?)(\1)', re.DOTALL)
+        header_pattern = re.compile(r"^(###|##)\s*(.+)$", re.MULTILINE)
+        bold_pattern = re.compile(r"(\*\*\*|\*\*|```|`)(.+?)(\1)", re.DOTALL)
         last_index = 0
         all_matches = []
         for match in header_pattern.finditer(text):
-            all_matches.append((match.start(), match.end(), 'header', match))
+            all_matches.append((match.start(), match.end(), "header", match))
         for match in bold_pattern.finditer(text):
-            all_matches.append((match.start(), match.end(), 'bold', match))
+            all_matches.append((match.start(), match.end(), "bold", match))
         all_matches.sort(key=lambda x: x[0])
         for start, end, match_type, match in all_matches:
             if start > last_index:
                 result.append(text[last_index:start])
-            if match_type == 'header':
+            if match_type == "header":
                 level = len(match.group(1))
                 content = match.group(2)
                 if level == 3:
                     result.append(content, style="bold italic underline")
                 elif level == 2:
                     result.append(content, style="bold italic underline2")
-            elif match_type == 'bold':
+            elif match_type == "bold":
                 bold_text = match.group(2)
                 result.append(bold_text, style="bold")
             last_index = end
         if last_index < len(text):
             result.append(text[last_index:])
         return result
-    
-    
+
     def compute(self):
         if self.model == "felo-ai":
             url = "https://api.felo.ai/search/threads"
-            pl = {"query": self.content, "search_uuid": "KOjrJgtkreK7dIZjdZdMa", "lang": "", "search_options": {}, "search_video": True, "query_from": "default", "category": "chat", "model": "", "auto_routing": True, "mode": "concise", "device_id": "40eb88430569da10bebebd33f914d9c7", "documents": [], "document_action": ""}
-            hd = {"User-Agent": "Mozilla/5.0 (Linux; Android 11; SM-A307FN Build/RP1A.200720.012)", "Accept": "*/*", "Content-Type": "application/json", "origin": "https://felo.ai", "x-requested-with": "mark.via.gp", "referer": "https://felo.ai/"}
+            pl = {
+                "query": str(self.history),
+                "search_uuid": "KOjrJgtkreK7dIZjdZdMa",
+                "lang": "",
+                "search_options": {},
+                "search_video": True,
+                "query_from": "default",
+                "category": "chat",
+                "model": "",
+                "auto_routing": True,
+                "mode": "concise",
+                "device_id": "40eb88430569da10bebebd33f914d9c7",
+                "documents": [],
+                "document_action": "",
+            }
+            hd = {
+                "User-Agent": "Mozilla/5.0 (Linux; Android 11; SM-A307FN Build/RP1A.200720.012)",
+                "Accept": "*/*",
+                "Content-Type": "application/json",
+                "origin": "https://felo.ai",
+                "x-requested-with": "mark.via.gp",
+                "referer": "https://felo.ai/",
+            }
             rs = requests.post(url, data=json.dumps(pl), headers=hd)
             ans = ""
             for l in rs.text.splitlines():
@@ -128,14 +144,13 @@ class Promt:
                         dt = json.loads(l[6:])
                         if dt.get("type") == "answer":
                             ans = dt["data"]["text"]
-                    except: pass
+                    except:
+                        pass
             return ans
         else:
             # GPT
             client = Client()
             response = client.chat.completions.create(
-                model=self.model,
-                messages=self.history,
-                web_search=False
+                model=self.model, messages=self.history, web_search=False
             )
             return response.choices[0].message.content
