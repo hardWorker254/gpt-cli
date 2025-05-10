@@ -120,7 +120,7 @@ class Promt:
                 "search_options": {},
                 "search_video": True,
                 "query_from": "default",
-                "category": "chat",
+                "category": "web",
                 "model": "",
                 "auto_routing": True,
                 "mode": "concise",
